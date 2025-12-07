@@ -7,7 +7,6 @@
 
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:fastclean/main.dart';
@@ -19,11 +18,10 @@ void main() {
     await tester.pumpWidget(const MyApp(initialRoute: AppRoutes.home));
 
     // Verify that the main title is present.
-    expect(find.text('AI Photo Cleaner'), findsOneWidget);
+    expect(find.text('FastClean'), findsOneWidget);
 
-    // Verify that the initial "Sort" button is present.
-    expect(find.widgetWithText(ActionButton, 'Sort'), findsOneWidget);
-    expect(find.byIcon(Icons.sort), findsOneWidget);
+    // Verify that the initial "Analyze Photos" button is present.
+    expect(find.widgetWithText(ActionButton, 'Analyze Photos'), findsOneWidget);
 
     // Verify that the "Delete" button is not present initially.
     expect(find.widgetWithText(ActionButton, 'Delete'), findsNothing);

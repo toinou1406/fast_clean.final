@@ -94,10 +94,10 @@ class PhotoCleanerService {
 
   /// Scans all photos using a high-performance, batched background process.
   /// Returns the number of photos successfully analyzed.
-  Future<void> scanPhotos() async {
+  Future<void> scanPhotos({required String permissionErrorMessage}) async {
     final permission = await PhotoManager.requestPermissionExtend();
     if (!permission.hasAccess) {
-      throw Exception('Full photo access permission is required.');
+      throw Exception(permissionErrorMessage);
     }
 
     final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(type: RequestType.image);

@@ -38,7 +38,7 @@ class _SortingIndicatorBarState extends State<SortingIndicatorBar>
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        border: Border.all(color: Colors.white.withAlpha(51)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(11),
@@ -58,7 +58,7 @@ class _SortingIndicatorBarState extends State<SortingIndicatorBar>
               ),
             ),
             // Dark overlay for text readability
-            Container(color: Colors.black.withOpacity(0.3)),
+            Container(color: Colors.black.withAlpha(77)),
             // Message Text
             Center(
               child: Text(

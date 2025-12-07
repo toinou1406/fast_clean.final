@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:math';
@@ -7,41 +6,63 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
+import 'constants.dart';
+import 'action_button.dart';
 
 // Aurora & Custom Widgets
 import 'aurora_widgets.dart';
 import 'aurora_circular_indicator.dart';
 import 'full_screen_image_view.dart';
 import 'permission_screen.dart';
+import 'language_settings_screen.dart';
 import 'photo_analyzer.dart';
 import 'photo_cleaner_service.dart';
 import 'saved_space_indicator.dart';
 import 'sorting_indicator_bar.dart';
 
-const Color etherealGreen = Color(0xFF00FFA3);
-const Color deepCyan = Color(0xFF00D4FF);
-const Color darkCharcoal = Color(0xFF1A1A1A);
-const Color offWhite = Color(0xFFEAEAEA);
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   final bool permissionGranted = prefs.getBool('permission_granted') ?? false;
+  final String? languageCode = prefs.getString('language_code');
 
   runApp(MyApp(
     initialRoute: permissionGranted ? AppRoutes.home : AppRoutes.permission,
+    locale: languageCode != null ? Locale(languageCode) : null,
   ));
 }
 
 class AppRoutes {
   static const String home = '/';
   static const String permission = '/permission';
+  static const String settings = '/settings';
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key, required this.initialRoute});
-
+class MyApp extends StatefulWidget {
+  const MyApp({super.key, required this.initialRoute, this.locale});
   final String initialRoute;
+  final Locale? locale;
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late Locale _locale;
+
+  @override
+  void initState() {
+    super.initState();
+    _locale = widget.locale ?? AppLocalizations.supportedLocales.first;
+  }
+
+  void changeLocale(Locale newLocale) {
+    setState(() {
+      _locale = newLocale;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +71,8 @@ class MyApp extends StatelessWidget {
     ).copyWith(
       displayLarge: GoogleFonts.inter(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white),
       titleLarge: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w600, color: offWhite),
-      titleMedium: GoogleFonts.inter(fontSize: 18, color: offWhite.withOpacity(0.9)),
-      bodyMedium: GoogleFonts.inter(fontSize: 14, color: offWhite.withOpacity(0.7)),
+      titleMedium: GoogleFonts.inter(fontSize: 18, color: offWhite.withAlpha(230)),
+      bodyMedium: GoogleFonts.inter(fontSize: 14, color: offWhite.withAlpha(179)),
       labelLarge: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: darkCharcoal),
     );
 
@@ -75,18 +96,28 @@ class MyApp extends StatelessWidget {
     );
 
     return MaterialApp(
-      title: 'FastClean',
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       theme: theme,
+      locale: _locale,
       debugShowCheckedModeBanner: false,
-      initialRoute: initialRoute,
+      initialRoute: widget.initialRoute,
       routes: {
         AppRoutes.home: (context) => const HomeScreen(),
         AppRoutes.permission: (context) => PermissionScreen(
           onPermissionGranted: () {
             Navigator.pushReplacementNamed(context, AppRoutes.home);
           },
+          onLocaleChanged: changeLocale,
         ),
+        AppRoutes.settings: (context) => LanguageSettingsScreen(onLocaleChanged: changeLocale),
       },
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }
@@ -100,28 +131,31 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final PhotoCleanerService _service = PhotoCleanerService();
-  
+
   StorageInfo? _storageInfo;
   double _spaceSaved = 0.0;
   List<PhotoResult> _selectedPhotos = [];
   final Set<String> _ignoredPhotos = {};
   bool _isLoading = false;
-  bool _isDeleting = false; 
+  bool _isDeleting = false;
   bool _hasScanned = false;
-  String _sortingMessage = "Sorting...";
+  String _sortingMessage = ""; // Default will be set from l10n
   Timer? _messageTimer;
   bool _isInitialized = false;
 
-  final List<String> _sortingMessages = [
-    "Analyzing photo metadata...",
-    "Detecting blurry images...",
-    "Searching for bad screenshots...",
-    "Checking for duplicates...",
-    "Calculating photo scores...",
-    "Compiling results...",
-    "Ranking photos by 'badness'...",
-    "Finalizing the photo selection...",
-  ];
+  List<String> _getSortingMessages() {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      l10n.sortingMessageAnalyzing,
+      l10n.sortingMessageBlurry,
+      l10n.sortingMessageScreenshots,
+      l10n.sortingMessageDuplicates,
+      l10n.sortingMessageScores,
+      l10n.sortingMessageCompiling,
+      l10n.sortingMessageRanking,
+      l10n.sortingMessageFinalizing,
+    ];
+  }
 
   @override
   void initState() {
@@ -174,10 +208,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       for (final id in photoIds) {
         try {
           final asset = await AssetEntity.fromId(id);
-          restoredPhotos.add(PhotoResult(asset!, PhotoAnalysisResult.dummy()));
+          if (asset != null) {
+            restoredPhotos.add(PhotoResult(asset, PhotoAnalysisResult.dummy()));
+          }
         } catch (e) { /* Asset might have been deleted. */ }
       }
-      
+
       if (mounted) {
         setState(() {
           _selectedPhotos = restoredPhotos;
@@ -207,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     await prefs.setDouble('spaceSaved', _spaceSaved);
     await prefs.setInt('lastSavedMonth', DateTime.now().month);
   }
-  
+
   String _formatBytes(double bytes, [int decimals = 2]) {
     if (bytes <= 0) return "0 B";
     const suffixes = ["B", "KB", "MB", "GB", "TB"];
@@ -219,31 +255,34 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final info = await _service.getStorageInfo();
     if (mounted) setState(() => _storageInfo = info);
   }
-  
+
   Future<void> _sortPhotos({bool rescan = false}) async {
+    final l10n = AppLocalizations.of(context)!;
+    final sortingMessages = _getSortingMessages();
+
     setState(() {
       _isLoading = true;
-      _sortingMessage = _sortingMessages.first;
+      _sortingMessage = sortingMessages.first;
     });
 
     _messageTimer?.cancel();
     int msgIndex = 0;
     _messageTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (!_isLoading) { timer.cancel(); return; }
-      setState(() => _sortingMessage = _sortingMessages[++msgIndex % _sortingMessages.length]);
+      setState(() => _sortingMessage = sortingMessages[++msgIndex % sortingMessages.length]);
     });
-    
+
     try {
       if (rescan) _service.reset();
-      await _service.scanPhotos();
+      await _service.scanPhotos(permissionErrorMessage: l10n.photoAccessRequired);
       if (mounted) setState(() => _hasScanned = true);
-      
+
       final photos = await _service.selectPhotosToDelete(excludedIds: _ignoredPhotos.toList());
-      
+
       if (mounted) {
         if (photos.isEmpty && _hasScanned) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No more deletable photos found!')),
+            SnackBar(content: Text(l10n.noMorePhotos)),
           );
         }
         setState(() => _selectedPhotos = photos);
@@ -253,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       developer.log('Error during photo sorting', name: 'photo_cleaner.error', error: e, stackTrace: s);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An error occurred: ${e.toString()}')),
+          SnackBar(content: Text(l10n.errorOccurred(e.toString()))),
         );
       }
     } finally {
@@ -267,11 +306,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       photo.asset.file; // no need to await
     }
   }
-  
+
   Future<void> _deletePhotos() async {
     HapticFeedback.heavyImpact();
-    setState(() => _isDeleting = true); 
-    
+    setState(() => _isDeleting = true);
+
     try {
       final photosToDelete = _selectedPhotos.where((p) => !_ignoredPhotos.contains(p.asset.id)).toList();
       final Map<String, int> sizeMap = {};
@@ -282,13 +321,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
       final deletedIds = await _service.deletePhotos(photosToDelete);
       if (deletedIds.isEmpty && photosToDelete.isNotEmpty && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not delete photos. Please try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.couldNotDelete)));
         setState(() => _isDeleting = false);
         return;
       }
 
       int totalBytesDeleted = deletedIds.fold(0, (sum, id) => sum + (sizeMap[id] ?? 0));
-      
+
       if (mounted) {
         setState(() {
           _selectedPhotos = [];
@@ -297,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         });
         _saveSavedSpace();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Deleted ${deletedIds.length} photos and saved ${_formatBytes(totalBytesDeleted.toDouble())}')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.photosDeleted(deletedIds.length, _formatBytes(totalBytesDeleted.toDouble())))),
         );
       }
       await _loadStorageInfo();
@@ -305,14 +344,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       developer.log('Error deleting photos', name: 'photo_cleaner.error', error: e, stackTrace: s);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting photos: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.errorDeleting(e.toString()))),
         );
       }
     } finally {
       if (mounted) setState(() => _isDeleting = false);
     }
   }
-  
+
   void _toggleIgnoredPhoto(String id) {
     HapticFeedback.lightImpact();
     setState(() {
@@ -332,8 +371,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('FastClean', style: Theme.of(context).textTheme.titleLarge),
+        title: Text(AppLocalizations.of(context)!.homeScreenTitle, key: const Key('homeScreenTitle'), style: Theme.of(context).textTheme.titleLarge),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: offWhite),
+            onPressed: () {
+              Navigator.pushNamed(context, AppRoutes.settings);
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -381,7 +428,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         },
       );
     }
-    
+
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(etherealGreen)));
     }
@@ -398,6 +445,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_isDeleting) return const SizedBox.shrink();
 
     int photosToDeleteCount = _selectedPhotos.length - _ignoredPhotos.length;
+    final l10n = AppLocalizations.of(context)!;
 
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -410,7 +458,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 children: [
                   Expanded(
                     child: ActionButton(
-                      label: 'Re-sort',
+                      label: l10n.reSort,
                       onPressed: () => _sortPhotos(),
                       isPrimary: false,
                     ),
@@ -419,11 +467,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   Expanded(
                     child: photosToDeleteCount > 0
                       ? ActionButton(
-                          label: 'Delete ($photosToDeleteCount)',
+                          label: l10n.delete(photosToDeleteCount),
                           onPressed: _deletePhotos,
                         )
                       : ActionButton(
-                          label: 'Pass',
+                          label: l10n.pass,
                           onPressed: () => setState(() {
                             _selectedPhotos = [];
                             _ignoredPhotos.clear();
@@ -434,8 +482,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ],
               )
             : ActionButton(
-                label: 'Analyze Photos',
+                label: l10n.analyzePhotos,
                 onPressed: () => _sortPhotos(rescan: true),
+                key: const Key('analyzePhotosButton'),
               ),
       ),
     );
@@ -493,50 +542,25 @@ class _PhotoCardState extends State<PhotoCard> {
                   child: Container(), // Empty container, the border is the decoration
                 ),
               ),
+              AnimatedOpacity(
+                opacity: widget.isIgnored ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 250),
+                child: Center(
+                  child: Text(
+                    AppLocalizations.of(context)!.keep,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      shadows: [Shadow(blurRadius: 5.0, color: Colors.black87, offset: Offset(1,1))],
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-class ActionButton extends StatelessWidget {
-  final String label;
-  final VoidCallback? onPressed;
-  final bool isPrimary;
-
-  const ActionButton({super.key, required this.label, this.onPressed, this.isPrimary = true});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 60,
-      width: double.infinity,
-      child: isPrimary
-          ? AuroraBorder(
-              borderRadius: BorderRadius.circular(12),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: darkCharcoal,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                onPressed: onPressed,
-                child: Text(label),
-              ),
-            )
-          : OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: BorderSide(color: Colors.white.withOpacity(0.5)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              onPressed: onPressed,
-              child: Text(label),
-            ),
     );
   }
 }

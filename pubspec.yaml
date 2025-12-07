@@ -1,4 +1,4 @@
-name: FastClean
+name: fastclean
 description: "A fast way to clean your photos."
 publish_to: 'none'
 version: 1.0.0+1
@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
   cupertino_icons: ^1.0.6
   photo_manager: ^3.0.0
   image: ^4.1.0
@@ -31,6 +34,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
 
 flutter:
+  generate: true
   uses-material-design: true
   assets:
     - assets/images/
@@ -43,4 +47,4 @@ flutter_native_splash:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: false
-  image_path: "assets/images/icone_app.png"
+  image_path: "assets/images/WhatsApp Image 2025-12-07 at 16.11.36.jpeg"

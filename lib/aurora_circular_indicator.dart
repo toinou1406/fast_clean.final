@@ -1,5 +1,5 @@
-
 import 'dart:math';
+import 'package:fastclean/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'photo_cleaner_service.dart'; // For StorageInfo
@@ -85,10 +85,10 @@ class _AuroraCircularIndicatorState extends State<AuroraCircularIndicator>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Storage Used',
+                  AppLocalizations.of(context)!.storageUsed,
                   style: GoogleFonts.inter(
                     fontSize: 16,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withAlpha(179),
                   ),
                 ),
               ],
@@ -113,7 +113,7 @@ class _AuroraPainter extends CustomPainter {
     const double strokeWidth = 12.0;
 
     final backgroundPaint = Paint()
-      ..color = Colors.white.withOpacity(0.15)
+      ..color = Colors.white.withAlpha(38)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 

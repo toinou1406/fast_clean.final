@@ -160,7 +160,7 @@ class _AuroraLinearProgressIndicatorState extends State<AuroraLinearProgressIndi
         height: 10,
         child: Stack(
           children: [
-            Container(color: Colors.white.withOpacity(0.15)),
+            Container(color: Colors.white.withAlpha(38)),
             FractionallySizedBox(
               widthFactor: widget.progress,
               child: CustomPaint(

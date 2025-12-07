@@ -1,15 +1,17 @@
-
 import 'dart:io';
+import 'package:fastclean/action_button.dart';
+import 'package:fastclean/constants.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:fastclean/l10n/app_localizations.dart';
 
 // Aurora & Custom Widgets
-import 'photo_cleaner_service.dart'; 
-import 'main.dart'; // For ActionButton colors
+import 'aurora_widgets.dart';
+import 'photo_cleaner_service.dart';
 
 class FullScreenImageView extends StatefulWidget {
   final List<PhotoResult> photos;
@@ -59,10 +61,13 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
   Widget build(BuildContext context) {
     final currentPhotoId = widget.photos[_currentIndex].asset.id;
     final isKept = widget.ignoredPhotos.contains(currentPhotoId);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: darkCharcoal,
       body: GestureDetector(
+        onDoubleTap: () => setState(() => widget.onToggleKeep(currentPhotoId)),
+        onLongPress: () => setState(() => widget.onToggleKeep(currentPhotoId)),
         onVerticalDragEnd: (details) {
           if (!_isZoomed.value && (details.primaryVelocity ?? 0) > 250) {
             Navigator.of(context).pop();
@@ -85,6 +90,41 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
               scrollPhysics: const BouncingScrollPhysics(),
               loadingBuilder: (context, event) => const Center(child: CircularProgressIndicator(color: etherealGreen)),
             ),
+
+            // Keep UI Overlay
+            Positioned.fill(
+              child: AnimatedOpacity(
+                opacity: isKept ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                // Use IgnorePointer to prevent the overlay from blocking gestures to the PhotoView
+                child: IgnorePointer(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      AuroraBorder(
+                        borderRadius: BorderRadius.zero,
+                        borderWidth: 4.0,
+                        child: Container(),
+                      ),
+                      Center(
+                        child: Text(
+                          l10n.keep,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(blurRadius: 10.0, color: Colors.black54, offset: Offset(2,2)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
             // Top Gradient and App Bar
             _buildGradientOverlay(
               child: SafeArea(
@@ -92,7 +132,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.of(context).pop()),
-                  title: Text('${_currentIndex + 1} of ${widget.photos.length}', style: Theme.of(context).textTheme.titleMedium),
+                  title: Text(l10n.fullScreenTitle(_currentIndex + 1, widget.photos.length), style: Theme.of(context).textTheme.titleMedium),
                   centerTitle: true,
                 ),
               ),
@@ -103,7 +143,8 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 30, 20, 40),
                 child: ActionButton(
-                  label: isKept ? 'Kept' : 'Keep',
+                  label: isKept ? l10n.kept : l10n.keep,
+                  icon: isKept ? Icons.check_circle_outline : Icons.delete_outline,
                   onPressed: () => setState(() => widget.onToggleKeep(currentPhotoId)),
                   isPrimary: !isKept,
                 ),
@@ -126,7 +167,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
           gradient: LinearGradient(
             begin: isBottom ? Alignment.bottomCenter : Alignment.topCenter,
             end: isBottom ? Alignment.topCenter : Alignment.bottomCenter,
-            colors: [darkCharcoal.withOpacity(0.8), Colors.transparent],
+            colors: [darkCharcoal.withAlpha(204), Colors.transparent],
           ),
         ),
         child: child,
@@ -176,7 +217,7 @@ class _PhotoPageState extends State<PhotoPage> {
           children: [
             const Icon(Icons.error_outline, color: Colors.red, size: 60),
             const SizedBox(height: 16),
-            Text('Failed to load image', style: Theme.of(context).textTheme.titleMedium),
+            Text(AppLocalizations.of(context)!.failedToLoadImage, style: Theme.of(context).textTheme.titleMedium),
             if (kDebugMode) Padding(padding: const EdgeInsets.all(16.0), child: Text(_loadError.toString(), style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center)),
           ],
         ),

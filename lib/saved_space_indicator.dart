@@ -1,4 +1,4 @@
-
+import 'package:fastclean/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'aurora_widgets.dart';
 
@@ -26,7 +26,7 @@ class SavedSpaceIndicator extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Space Saved (This Month)', style: Theme.of(context).textTheme.titleMedium),
+              Text(AppLocalizations.of(context)!.spaceSavedThisMonth, style: Theme.of(context).textTheme.titleMedium),
               Text(formattedSpaceSaved, style: Theme.of(context).textTheme.titleMedium),
             ],
           ),

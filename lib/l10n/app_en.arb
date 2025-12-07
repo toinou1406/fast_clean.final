@@ -1,0 +1,84 @@
+{
+    "@@locale": "en",
+    "privacyFirst": "Privacy First",
+    "@privacyFirst": {
+        "description": "Title on the permission screen"
+    },
+    "permissionScreenBody": "FastClean analyzes your photos directly on your device. Nothing is ever uploaded to a server.",
+    "@permissionScreenBody": {
+        "description": "Body text on the permission screen"
+    },
+    "grantAccessContinue": "Grant Access & Continue",
+    "@grantAccessContinue": {
+        "description": "Button text on the permission screen"
+    },
+    "homeScreenTitle": "FastClean",
+    "sortingMessageAnalyzing": "Analyzing photo metadata...",
+    "sortingMessageBlurry": "Detecting blurry images...",
+    "sortingMessageScreenshots": "Searching for bad screenshots...",
+    "sortingMessageDuplicates": "Checking for duplicates...",
+    "sortingMessageScores": "Calculating photo scores...",
+    "sortingMessageCompiling": "Compiling results...",
+    "sortingMessageRanking": "Ranking photos by 'badness'...",
+    "sortingMessageFinalizing": "Finalizing the photo selection...",
+    "noMorePhotos": "No more deletable photos found!",
+    "errorOccurred": "An error occurred: {error}",
+    "@errorOccurred": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "photosDeleted": "Deleted {count} photos and saved {space}",
+    "@photosDeleted": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        },
+        "space": {
+          "type": "String"
+        }
+      }
+    },
+    "errorDeleting": "Error deleting photos: {error}",
+    "@errorDeleting": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "reSort": "Re-sort",
+    "delete": "Delete ({count})",
+    "@delete": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "pass": "Pass",
+    "analyzePhotos": "Analyze Photos",
+    "fullScreenTitle": "{count} of {total}",
+    "@fullScreenTitle": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "kept": "Kept",
+    "keep": "Keep",
+    "failedToLoadImage": "Failed to load image",
+    "couldNotDelete": "Could not delete photos. Please try again.",
+    "photoAccessRequired": "Full photo access permission is required.",
+    "settings": "Settings",
+    "storageUsed": "Storage Used",
+    "spaceSavedThisMonth": "Space Saved (This Month)",
+    "appTitle": "FastClean",
+    "chooseYourLanguage": "Choose your language"
+}
