@@ -139,4 +139,82 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get storageSpaceSaved => 'Espace de stockage économisé';
+
+  @override
+  String get premiumWelcomeTitle => 'Bienvenue en Premium !';
+
+  @override
+  String get premiumWelcomeMessage =>
+      'Vous bénéficiez de 7 jours d\'essai gratuit avec des tris illimités.';
+
+  @override
+  String get premiumTrialExpiredTitle => 'Essai Premium terminé';
+
+  @override
+  String get premiumTrialExpiredMessage =>
+      'Vous êtes maintenant en mode normal. Vous pouvez trier 3 fois par jour. Passez à Premium pour des tris illimités.';
+
+  @override
+  String get dailySortLimitReachedTitle => 'Limite quotidienne atteinte';
+
+  @override
+  String get dailySortLimitReachedMessage =>
+      'Vous avez utilisé vos 3 tris gratuits pour aujourd\'hui. Revenez demain ou passez à Premium.';
+
+  @override
+  String sortsLeft(Object count) {
+    return '$count tris restants';
+  }
+
+  @override
+  String get upgradeToPremium => 'Passer à Premium';
+
+  @override
+  String get premiumScreenTitle => 'FastClean Premium';
+
+  @override
+  String get premiumFeatureUnlimited => 'Tris illimités';
+
+  @override
+  String get premiumFeatureAdFree => 'Expérience sans publicité';
+
+  @override
+  String get premiumFeatureFuture => 'Accès aux futures fonctionnalités';
+
+  @override
+  String get monthlySubscription => 'Abonnement mensuel';
+
+  @override
+  String get yearlySubscription => 'Abonnement annuel';
+
+  @override
+  String get monthlyPrice => '2,99 \$/mois';
+
+  @override
+  String get yearlyPrice => '1,99 \$/mois';
+
+  @override
+  String get yearlyPriceSub => 'Facturé 23,88 \$ par an';
+
+  @override
+  String get mostPopular => 'Le plus populaire';
+
+  @override
+  String get continueButton => 'Continuer';
+
+  @override
+  String get restorePurchases => 'Restaurer les achats';
+
+  @override
+  String get termsOfService => 'Conditions d\'utilisation';
+
+  @override
+  String get privacyPolicy => 'Politique de confidentialité';
+
+  @override
+  String get spaceFreedForPremium => 'Espace libéré pour du Premium';
+
+  @override
+  String get oneDayPremiumEarned =>
+      'Félicitations ! Vous avez gagné 1 jour de Premium !';
 }

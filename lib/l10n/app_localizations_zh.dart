@@ -131,4 +131,82 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get storageSpaceSaved => '节省的存储空间';
+
+  @override
+  String get premiumWelcomeTitle => 'Welcome to Premium!';
+
+  @override
+  String get premiumWelcomeMessage =>
+      'You have a 7-day free trial with unlimited sorting.';
+
+  @override
+  String get premiumTrialExpiredTitle => 'Premium Trial Ended';
+
+  @override
+  String get premiumTrialExpiredMessage =>
+      'You are now in normal mode. You can sort 3 times a day. Upgrade to Premium for unlimited sorting.';
+
+  @override
+  String get dailySortLimitReachedTitle => 'Daily Limit Reached';
+
+  @override
+  String get dailySortLimitReachedMessage =>
+      'You have used your 3 free sorts for today. Come back tomorrow or upgrade to Premium.';
+
+  @override
+  String sortsLeft(Object count) {
+    return '$count sorts left';
+  }
+
+  @override
+  String get upgradeToPremium => 'Upgrade to Premium';
+
+  @override
+  String get premiumScreenTitle => 'FastClean Premium';
+
+  @override
+  String get premiumFeatureUnlimited => 'Unlimited Sorts';
+
+  @override
+  String get premiumFeatureAdFree => 'Ad-free Experience';
+
+  @override
+  String get premiumFeatureFuture => 'Access to Future Features';
+
+  @override
+  String get monthlySubscription => 'Monthly Subscription';
+
+  @override
+  String get yearlySubscription => 'Yearly Subscription';
+
+  @override
+  String get monthlyPrice => '\$2.99/month';
+
+  @override
+  String get yearlyPrice => '\$1.99/month';
+
+  @override
+  String get yearlyPriceSub => 'Billed \$23.88 per year';
+
+  @override
+  String get mostPopular => 'Most Popular';
+
+  @override
+  String get continueButton => 'Continue';
+
+  @override
+  String get restorePurchases => 'Restore Purchases';
+
+  @override
+  String get termsOfService => 'Terms of Service';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get spaceFreedForPremium => 'Space Freed for Premium';
+
+  @override
+  String get oneDayPremiumEarned =>
+      'Congratulations! You\'ve earned 1 day of Premium!';
 }

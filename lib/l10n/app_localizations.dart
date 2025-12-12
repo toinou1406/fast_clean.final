@@ -329,6 +329,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Storage Space Saved'**
   String get storageSpaceSaved;
+
+  /// No description provided for @premiumWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Premium!'**
+  String get premiumWelcomeTitle;
+
+  /// No description provided for @premiumWelcomeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You have a 7-day free trial with unlimited sorting.'**
+  String get premiumWelcomeMessage;
+
+  /// No description provided for @premiumTrialExpiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Trial Ended'**
+  String get premiumTrialExpiredTitle;
+
+  /// No description provided for @premiumTrialExpiredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You are now in normal mode. You can sort 3 times a day. Upgrade to Premium for unlimited sorting.'**
+  String get premiumTrialExpiredMessage;
+
+  /// No description provided for @dailySortLimitReachedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Limit Reached'**
+  String get dailySortLimitReachedTitle;
+
+  /// No description provided for @dailySortLimitReachedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You have used your 3 free sorts for today. Come back tomorrow or upgrade to Premium.'**
+  String get dailySortLimitReachedMessage;
+
+  /// No description provided for @sortsLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sorts left'**
+  String sortsLeft(Object count);
+
+  /// No description provided for @upgradeToPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Premium'**
+  String get upgradeToPremium;
+
+  /// No description provided for @premiumScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'FastClean Premium'**
+  String get premiumScreenTitle;
+
+  /// No description provided for @premiumFeatureUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited Sorts'**
+  String get premiumFeatureUnlimited;
+
+  /// No description provided for @premiumFeatureAdFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad-free Experience'**
+  String get premiumFeatureAdFree;
+
+  /// No description provided for @premiumFeatureFuture.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to Future Features'**
+  String get premiumFeatureFuture;
+
+  /// No description provided for @monthlySubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Subscription'**
+  String get monthlySubscription;
+
+  /// No description provided for @yearlySubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly Subscription'**
+  String get yearlySubscription;
+
+  /// No description provided for @monthlyPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'\$2.99/month'**
+  String get monthlyPrice;
+
+  /// No description provided for @yearlyPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'\$1.99/month'**
+  String get yearlyPrice;
+
+  /// No description provided for @yearlyPriceSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed \$23.88 per year'**
+  String get yearlyPriceSub;
+
+  /// No description provided for @mostPopular.
+  ///
+  /// In en, this message translates to:
+  /// **'Most Popular'**
+  String get mostPopular;
+
+  /// No description provided for @continueButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueButton;
+
+  /// No description provided for @restorePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Purchases'**
+  String get restorePurchases;
+
+  /// No description provided for @termsOfService.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get termsOfService;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @spaceFreedForPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Space Freed for Premium'**
+  String get spaceFreedForPremium;
+
+  /// No description provided for @oneDayPremiumEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations! You\'ve earned 1 day of Premium!'**
+  String get oneDayPremiumEarned;
 }
 
 class _AppLocalizationsDelegate
