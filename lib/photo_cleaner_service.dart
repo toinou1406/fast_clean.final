@@ -1,12 +1,9 @@
-
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:disk_space_plus/disk_space_plus.dart';
 import 'photo_analyzer.dart';
 import 'package:flutter/services.dart';
-
-
 
 //##############################################################################
 //# 1. ISOLATE DATA STRUCTURES & TOP-LEVEL FUNCTION
@@ -83,18 +80,36 @@ class PhotoResult {
 }
 
 class PhotoCleanerService {
+  static final PhotoCleanerService instance = PhotoCleanerService._internal();
+
   final DiskSpacePlus _diskSpace = DiskSpacePlus();
   
   final List<PhotoResult> _allPhotos = [];
   final Set<String> _seenPhotoIds = {};
 
+  Future<void>? _scanFuture;
+
+  factory PhotoCleanerService() {
+    return instance;
+  }
+
+  PhotoCleanerService._internal();
+
   void reset() {
     _seenPhotoIds.clear();
+    _allPhotos.clear();
+    _scanFuture = null;
   }
+  
+  Future<void> scanPhotosInBackground({required String permissionErrorMessage}) async {
+    _scanFuture ??= _scanPhotos(permissionErrorMessage: permissionErrorMessage);
+    return _scanFuture;
+  }
+
 
   /// Scans all photos using a high-performance, batched background process.
   /// Returns the number of photos successfully analyzed.
-  Future<void> scanPhotos({required String permissionErrorMessage}) async {
+  Future<void> _scanPhotos({required String permissionErrorMessage}) async {
     final permission = await PhotoManager.requestPermissionExtend();
     if (!permission.hasAccess) {
       throw Exception(permissionErrorMessage);
@@ -110,20 +125,22 @@ class PhotoCleanerService {
     final screenshotAlbums = albums.where((album) => album.name.toLowerCase() == 'screenshots').toList();
     final otherAlbums = albums.where((album) => album.name.toLowerCase() != 'screenshots').toList();
 
-    // Get a limited number of recent screenshot assets to speed up initialization
+    // Get a limited number of oldest screenshot assets
     for (final album in screenshotAlbums) {
         final totalInAlbum = await album.assetCountAsync;
         final assetsToFetch = totalInAlbum > 500 ? 500 : totalInAlbum;
-        final assets = await album.getAssetListRange(start: 0, end: assetsToFetch);
+        final start = totalInAlbum - assetsToFetch;
+        final assets = await album.getAssetListRange(start: start < 0 ? 0 : start, end: totalInAlbum);
         screenshotAssetIds.addAll(assets.map((a) => a.id));
         screenshotAssets.addAll(assets);
     }
     
-    // Get a limited number of recent other assets
+    // Get a limited number of oldest other assets
     for (final album in otherAlbums) {
         final totalInAlbum = await album.assetCountAsync;
         final assetsToFetch = totalInAlbum > 500 ? 500 : totalInAlbum;
-        final assets = await album.getAssetListRange(start: 0, end: assetsToFetch);
+        final start = totalInAlbum - assetsToFetch;
+        final assets = await album.getAssetListRange(start: start < 0 ? 0 : start, end: totalInAlbum);
         otherAssets.addAll(assets);
     }
     

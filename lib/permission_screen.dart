@@ -156,10 +156,11 @@ class _PermissionScreenState extends State<PermissionScreen> with SingleTickerPr
         const SizedBox(height: 16),
         SegmentedButton<String>(
           segments: const [
-            ButtonSegment(value: 'en', label: Text('🇬🇧 English')),
-            ButtonSegment(value: 'fr', label: Text('🇫🇷 Français')),
-            ButtonSegment(value: 'es', label: Text('🇪🇸 Español')),
-            ButtonSegment(value: 'zh', label: Text('🇨🇳 中文')),
+            ButtonSegment(value: 'en', label: Text('🇬🇧')),
+            ButtonSegment(value: 'fr', label: Text('🇫🇷')),
+            ButtonSegment(value: 'es', label: Text('🇪🇸')),
+            ButtonSegment(value: 'zh', label: Text('🇨🇳')),
+            ButtonSegment(value: 'uk', label: Text('🇺🇦')),
           ],
           selected: {_currentLanguageCode!},
           onSelectionChanged: (newSelection) {

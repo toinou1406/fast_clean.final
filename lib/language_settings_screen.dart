@@ -90,6 +90,7 @@ Widget build(BuildContext context) {
                 _buildLanguageOption(context: context, code: 'fr', name: 'Français', flag: '🇫🇷'),
                 _buildLanguageOption(context: context, code: 'es', name: 'Español', flag: '🇪🇸'),
                 _buildLanguageOption(context: context, code: 'zh', name: '中文', flag: '🇨🇳'),
+                _buildLanguageOption(context: context, code: 'uk', name: 'Українська', flag: '🇺🇦'),
               ],
             ),
           ),
