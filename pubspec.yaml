@@ -42,11 +42,10 @@ flutter:
     - assets/images/
 
 flutter_native_splash:
-  color: "#673AB7"
-  image: assets/images/icone_app.png
-  fullscreen: true
+  color: "#222122"
+  image: android/app/src/main/res/mipmap-mdpi/launcher_icon.png
 
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: false
-  image_path: "assets/images/WhatsApp Image 2025-12-07 at 16.11.36.jpeg"
+  image_path: "assets/images/logo mk 4.png"

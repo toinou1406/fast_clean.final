@@ -1,9 +1,8 @@
-
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:math';
 import 'package:fastclean/aurora_circular_indicator.dart';
-import 'package:fastclean/saved_space_indicator.dart';
+
 import 'package:fastclean/sorting_indicator_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,11 +21,19 @@ import 'language_settings_screen.dart';
 import 'photo_analyzer.dart';
 import 'photo_cleaner_service.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   final bool permissionGranted = prefs.getBool('permission_granted') ?? false;
   final String? languageCode = prefs.getString('language_code');
+
+  // Start scanning photos in the background if permission is granted
+  if (permissionGranted) {
+    // We don't have a context here, so we use a default error message.
+    // This can be improved by passing the message from the UI layer later.
+    PhotoCleanerService.instance.scanPhotosInBackground(permissionErrorMessage: "Photo access permission is required.");
+  }
 
   runApp(MyApp(
     initialRoute: permissionGranted ? AppRoutes.home : AppRoutes.permission,
@@ -58,10 +65,15 @@ class _MyAppState extends State<MyApp> {
     _locale = widget.locale ?? AppLocalizations.supportedLocales.first;
   }
 
-  void changeLocale(Locale newLocale) {
-    setState(() {
-      _locale = newLocale;
-    });
+  void _changeLocale(Locale locale) {
+    if (AppLocalizations.supportedLocales.contains(locale)) {
+      setState(() {
+        _locale = locale;
+      });
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setString('language_code', locale.languageCode);
+      });
+    }
   }
 
   @override
@@ -148,10 +160,10 @@ class _MyAppState extends State<MyApp> {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: elevatedButtonTheme.style?.copyWith(
-          backgroundColor: WidgetStateProperty.all(const Color(0xFF66BB6A)),
-          foregroundColor: WidgetStateProperty.all(Colors.black),
-          shadowColor: WidgetStateProperty.all(Colors.black.withAlpha(128)),
-          elevation: WidgetStateProperty.all(5),
+          backgroundColor: MaterialStateProperty.all(const Color(0xFF66BB6A)),
+          foregroundColor: MaterialStateProperty.all(Colors.black),
+          shadowColor: MaterialStateProperty.all(Colors.black.withAlpha(128)),
+          elevation: MaterialStateProperty.all(5),
         ),
       ),
       cardTheme: CardThemeData(
@@ -165,30 +177,31 @@ class _MyAppState extends State<MyApp> {
 
 
     return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: ThemeMode.dark,
-      locale: _locale,
-      debugShowCheckedModeBanner: false,
-      initialRoute: widget.initialRoute,
-      routes: {
-        AppRoutes.home: (context) => const HomeScreen(),
-        AppRoutes.permission: (context) => PermissionScreen(
-          onPermissionGranted: () {
-            Navigator.pushReplacementNamed(context, AppRoutes.home);
-          },
-          onLocaleChanged: changeLocale,
-        ),
-        AppRoutes.settings: (context) => LanguageSettingsScreen(onLocaleChanged: changeLocale),
-      },
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
+        onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        themeMode: ThemeMode.dark,
+        locale: _locale,
+        debugShowCheckedModeBanner: false,
+        initialRoute: widget.initialRoute,
+        routes: {
+          AppRoutes.home: (context) => const HomeScreen(),
+          AppRoutes.permission: (context) => PermissionScreen(
+            onPermissionGranted: () {
+              PhotoCleanerService.instance.scanPhotosInBackground(permissionErrorMessage: AppLocalizations.of(context).photoAccessRequired);
+              Navigator.pushReplacementNamed(context, AppRoutes.home);
+            },
+            onLocaleChanged: _changeLocale,
+          ),
+          AppRoutes.settings: (context) => LanguageSettingsScreen(onLocaleChanged: _changeLocale),
+        },
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }
@@ -201,7 +214,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
-  final PhotoCleanerService _service = PhotoCleanerService();
+  final PhotoCleanerService _service = PhotoCleanerService.instance;
 
   StorageInfo? _storageInfo;
   double _spaceSaved = 0.0;
@@ -229,10 +242,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (mounted) {
       setState(() => _isInitialized = true);
     }
-    // Automatically start sorting if no previous results are loaded.
-    if (_selectedPhotos.isEmpty && !_hasScanned) {
-      _sortPhotos(rescan: true);
-    }
+    // Do not automatically start sorting here anymore.
+    // The sorting is started in main.dart
   }
 
   @override
@@ -318,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (mounted) setState(() => _storageInfo = info);
   }
 
-  Future<void> _sortPhotos({bool rescan = false}) async {
+  Future<void> _sortPhotos() async {
     final l10n = AppLocalizations.of(context);
 
     final sortingMessages = [
@@ -348,26 +359,48 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
 
     try {
-      if (rescan) _service.reset();
-      await _service.scanPhotos(permissionErrorMessage: l10n.photoAccessRequired);
+
+      await _service.scanPhotosInBackground(permissionErrorMessage: l10n.photoAccessRequired);
       if (mounted) setState(() => _hasScanned = true);
 
       final photos = await _service.selectPhotosToDelete(excludedIds: _ignoredPhotos.toList());
 
-      if (mounted) {
-        if (photos.isEmpty && _hasScanned) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.noMorePhotos)),
-          );
+      if (photos.isEmpty && _hasScanned) {
+        _service.reset();
+        await _service.scanPhotosInBackground(permissionErrorMessage: l10n.photoAccessRequired);
+        final newPhotos = await _service.selectPhotosToDelete(excludedIds: _ignoredPhotos.toList());
+        if (mounted) {
+          if (newPhotos.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.noMorePhotos, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            );
+          }
+          setState(() => _selectedPhotos = newPhotos.take(15).toList());
         }
-        setState(() => _selectedPhotos = photos.take(15).toList());
-        // _preCachePhotoFiles(photos);
+      } else {
+        if (mounted) {
+          setState(() => _selectedPhotos = photos.take(15).toList());
+        }
       }
     } catch (e, s) {
       developer.log('Error during photo sorting', name: 'photo_cleaner.error', error: e, stackTrace: s);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.errorOccurred(e.toString()))),
+          SnackBar(
+            content: Text(l10n.errorOccurred(e.toString()), style: TextStyle(color: Theme.of(context).colorScheme.onError)),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
         );
       }
     } finally {
@@ -376,11 +409,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _preCachePhotoFiles(List<PhotoResult> photos) {
-    for (final photo in photos) {
-      photo.asset.file; // no need to await
-    }
-  }
+
 
   Future<void> _deletePhotos() async {
     HapticFeedback.heavyImpact();
@@ -397,12 +426,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       });
 
       final deletedIds = await _service.deletePhotos(photosToDelete);
-      if (deletedIds.isEmpty && photosToDelete.isNotEmpty && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.couldNotDelete)));
-        setState(() => _isDeleting = false);
-        return;
-      }
-
+              if (deletedIds.isEmpty && photosToDelete.isNotEmpty && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(l10n.couldNotDelete, style: TextStyle(color: Theme.of(context).colorScheme.onError)),
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ));
+                setState(() => _isDeleting = false);
+                return;
+              }
       int totalBytesDeleted = deletedIds.fold(0, (sum, id) => sum + (sizeMap[id] ?? 0));
 
       if (mounted) {
@@ -413,7 +448,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         });
         _saveSavedSpace();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.photosDeleted(deletedIds.length, _formatBytes(totalBytesDeleted.toDouble())))),
+          SnackBar(
+            content: Text(
+              l10n.photosDeleted(deletedIds.length, _formatBytes(totalBytesDeleted.toDouble())),
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
         );
       }
       await _loadStorageInfo();
@@ -421,7 +466,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       developer.log('Error deleting photos', name: 'photo_cleaner.error', error: e, stackTrace: s);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.errorDeleting(e.toString()))),
+          SnackBar(
+            content: Text(l10n.errorDeleting(e.toString()), style: TextStyle(color: Theme.of(context).colorScheme.onError)),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
         );
       }
     } finally {
@@ -550,7 +602,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       Expanded(
                         child: TextButton.icon(
                           icon: const Icon(Icons.refresh_rounded),
-                          label: Text(l10n.reSort),
+                          label: Text(l10n.reSort, style: TextStyle(fontSize: Localizations.localeOf(context).languageCode == 'uk' ? 12.0 : 14.0)),
                           onPressed: () => _sortPhotos(),
                           style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.onSurface.withAlpha(179)), // ~0.7 opacity
                         ),
@@ -560,7 +612,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         flex: 2,
                         child: ElevatedButton.icon(
                           icon: Icon(photosToDeleteCount > 0 ? Icons.delete_outline_rounded : Icons.check_rounded),
-                          label: Text(photosToDeleteCount > 0 ? l10n.delete(photosToDeleteCount) : l10n.pass),
+                          label: FittedBox(child: Text(photosToDeleteCount > 0 ? l10n.delete(photosToDeleteCount) : l10n.pass)),
                           onPressed: photosToDeleteCount > 0
                               ? _deletePhotos
                               : () => setState(() {
@@ -579,8 +631,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   )
                 : ElevatedButton.icon(
                     icon: const Icon(Icons.bolt_rounded),
-                    label: Text(l10n.analyzePhotos),
-                    onPressed: () => _sortPhotos(rescan: true),
+                    label: FittedBox(child: Text(l10n.analyzePhotos)),
+                    onPressed: () => _sortPhotos(),
                     key: const Key('analyzePhotosButton'),
                     style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 56)),
                   ),
