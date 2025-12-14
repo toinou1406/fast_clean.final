@@ -1,60 +1,21 @@
 <!DOCTYPE html><html><head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
 
-  <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="myapp">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png">
 
   <title>myapp</title>
   <link rel="manifest" href="manifest.json">
   
-  
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   
   <style id="splash-screen-style">
     html {
@@ -65,7 +26,10 @@
       margin: 0;
       min-height: 100%;
       background-color: #222122;
-          background-size: 100% 100%;
+    }
+    
+    #splash {
+        transition: opacity 1s ease-out;
     }
 
     .center {
@@ -77,69 +41,37 @@
       transform: translate(-50%, -50%);
     }
 
-    .contain {
-      display:block;
-      width:100%; height:100%;
+    #splash-image {
+      width: 80vw;
+      max-width: 200px;
+      height: auto;
       object-fit: contain;
-    }
-
-    .stretch {
-      display:block;
-      width:100%; height:100%;
-    }
-
-    .cover {
-      display:block;
-      width:100%; height:100%;
-      object-fit: cover;
-    }
-
-    .bottom {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      -ms-transform: translate(-50%, 0);
-      transform: translate(-50%, 0);
-    }
-
-    .bottomLeft {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-    }
-
-    .bottomRight {
-      position: absolute;
-      bottom: 0;
-      right: 0;
     }
   </style>
   <script id="splash-screen-script">
     function removeSplashFromWeb() {
-      document.getElementById("splash")?.remove();
-      document.getElementById("splash-branding")?.remove();
-      document.body.style.background = "transparent";
+      var splash = document.getElementById("splash");
+      if (splash) {
+        splash.style.opacity = "0";
+        setTimeout(function() { 
+          splash.remove(); 
+          document.body.style.background = "transparent";
+        }, 1000);
+      } else {
+        document.body.style.background = "transparent";
+      }
+      var splashBranding = document.getElementById("splash-branding");
+      if(splashBranding) {
+          splashBranding.remove();
+      }
     }
   </script>
 </head>
 <body>
-  <picture id="splash">
-      <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
-      <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
-      <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
-  </picture>
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  <script src="flutter_bootstrap.js" async=""></script>
+  <div id="splash" class="center">
+    <img id="splash-image" src="assets/images/icone_app.png" alt="Loading...">
+  </div>
 
+  <script src="flutter_bootstrap.js" async=""></script>
 
 </body></html>
